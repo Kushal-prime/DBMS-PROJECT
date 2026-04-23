@@ -1,41 +1,61 @@
+<div align="center">
+
 # 🛒 E-Commerce DBMS Platform
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![React](https://img.shields.io/badge/frontend-React%2019-61DAFB.svg?logo=react)
-![Node.js](https://img.shields.io/badge/backend-Node.js%20%2B%20Express-339933.svg?logo=node.js)
-![SQLite](https://img.shields.io/badge/database-SQLite-003B57.svg?logo=sqlite)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge)
+![React](https://img.shields.io/badge/frontend-React%2019-61DAFB.svg?style=for-the-badge&logo=react)
+![Node.js](https://img.shields.io/badge/backend-Node.js%20%2B%20Express-339933.svg?style=for-the-badge&logo=node.js)
+![SQLite](https://img.shields.io/badge/database-SQLite-003B57.svg?style=for-the-badge&logo=sqlite)
 
-A full-stack, responsive E-commerce web application built for seamless online shopping and robust database management. Designed specifically as a Database Management System (DBMS) project, this platform demonstrates the practical integration of a relational database with a modern user interface.
+A full-stack, responsive E-commerce web application built for seamless online shopping and robust database management. Designed specifically as a **Database Management System (DBMS)** project, this platform demonstrates the practical integration of a relational database with a modern user interface.
+
+[Features](#-features) • [Architecture](#-system-architecture) • [Database](#-database-schema-erd) • [API Reference](#-api-endpoints) • [Getting Started](#-getting-started)
+
+</div>
+
+---
 
 ## ✨ Features
 
-- **🛍️ Complete Shopping Experience**: Browse products, view details, and seamlessly add items to your cart.
-- **🔐 Admin Dashboard**: Monitor real-time orders, manage the product catalog, and view database statistics.
-- **💳 Real-time Order Processing**: Simulated checkout that instantly updates the relational database records.
-- **⚡ Fast & Modern UI**: Built with React and Vite for blazing-fast performance and a premium user experience.
+- **🛍️ Complete Shopping Experience**: Browse products, filter by category, view details, and seamlessly add items to your cart.
+- **🔐 Admin Dashboard**: Monitor real-time orders, manage the product catalog (CRUD operations), and view database statistics.
+- **💳 Real-time Order Processing**: Simulated checkout utilizing SQL transactions (`BEGIN`, `COMMIT`, `ROLLBACK`) that instantly update relational records.
+- **⚡ Fast & Modern UI**: Built with React and Vite for blazing-fast performance, paired with a custom CSS design system.
 - **📦 Pre-seeded Database**: Comes packed with realistic mock data (Laptops, Phones, Accessories) using the Indian Rupee (₹) currency.
 
 ---
 
 ## 🏗️ System Architecture
 
-The project follows a standard **Client-Server Architecture** separating concerns between the presentation layer, application logic, and data persistence.
+The project follows a standard **Client-Server Architecture**, maintaining a strict separation of concerns between the presentation layer, business logic, and data persistence.
 
 ```mermaid
 graph TD
-    Client[📱 Client/Browser <br> React + Vite]
-    Server[⚙️ Backend API <br> Node.js + Express]
-    DB[(🗄️ Database <br> SQLite)]
+    subgraph Frontend "Client-Side (React + Vite)"
+        UI[User Interface]
+        State[React State / Context]
+    end
 
-    Client <-->|REST API / JSON| Server
-    Server <-->|SQL Queries| DB
+    subgraph Backend "Server-Side (Node.js + Express)"
+        Router[Express Router]
+        Controllers[API Controllers]
+    end
+
+    subgraph Database "Data Layer (SQLite)"
+        SQL[(SQLite db file)]
+    end
+
+    UI -->|User Action| State
+    State <-->|HTTP REST / JSON| Router
+    Router --> Controllers
+    Controllers <-->|SQL Queries| SQL
 ```
 
 ---
 
-## 🗄️ Database Schema (ER Diagram)
+## 🗄️ Database Schema (ERD)
 
-The backbone of this application is a robust relational database built on SQLite. The schema is carefully normalized to manage products, user carts, and orders effectively.
+The backbone of this application is a normalized relational database built on SQLite. The schema manages products, user carts, and orders using strict foreign key constraints.
 
 ```mermaid
 erDiagram
@@ -74,20 +94,40 @@ erDiagram
 
 ---
 
+## 🔌 API Endpoints
+
+The Express backend exposes a comprehensive RESTful API for frontend integration.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/products` | Fetch all products (supports `?category=` filter) |
+| **GET** | `/products/:id` | Fetch a single product by ID |
+| **POST** | `/products` | Create a new product (Admin) |
+| **PUT** | `/products/:id` | Update an existing product (Admin) |
+| **DELETE** | `/products/:id` | Delete a product (Admin) |
+| **GET** | `/cart` | Fetch current user's cart items |
+| **POST** | `/cart` | Add an item to the cart or update quantity |
+| **DELETE** | `/cart/:id` | Remove an item from the cart |
+| **POST** | `/checkout` | Process cart into an order (Uses SQL Transactions) |
+| **GET** | `/orders` | Fetch all historical orders with nested items |
+| **GET** | `/debug/db` | Retrieve raw JSON dump of all DB tables for DBMS review |
+
+---
+
 ## 🚀 Getting Started
 
-Follow these steps to run the complete stack locally. Both frontend and backend servers will be launched simultaneously using a single command.
+Follow these steps to run the complete stack locally. Both frontend and backend servers launch simultaneously using a single command.
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v16 or higher recommended)
+- [Node.js](https://nodejs.org/) (v16 or higher)
 - npm (Node Package Manager)
 
 ### Installation
 
-1. **Clone the repository** (if you haven't already):
+1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
-   cd "DBMS project"
+   git clone https://github.com/Kushal-prime/DBMS-PROJECT.git
+   cd "DBMS-PROJECT"
    ```
 
 2. **Install all dependencies** (This installs root, frontend, and backend packages):
@@ -99,11 +139,11 @@ Follow these steps to run the complete stack locally. Both frontend and backend 
    ```bash
    npm start
    ```
-   *This command uses `concurrently` to launch both the React frontend and the Express backend simultaneously.*
+   *This command leverages `concurrently` to launch both the React frontend and the Express backend simultaneously.*
 
 ### Accessing the App
-- **Frontend / Customer Shop**: `http://localhost:5173` (Default Vite port)
-- **Backend API Server**: `http://localhost:5000` (Or configured backend port)
+- **Frontend / Customer Shop**: `http://localhost:5173`
+- **Backend API Server**: `http://localhost:5000`
 
 ---
 
@@ -127,20 +167,6 @@ Follow these steps to run the complete stack locally. Both frontend and backend 
 
 ---
 
-## 🛠️ Tech Stack
-
-### Frontend
-- **React 19**: Component-based UI framework.
-- **Vite**: Next-generation frontend tooling for ultra-fast builds.
-- **React Router**: For seamless single-page application navigation.
-
-### Backend
-- **Node.js**: JavaScript runtime environment.
-- **Express.js**: Fast, unopinionated, minimalist web framework.
-- **SQLite3**: C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.
-
----
-
-## 📝 License
-
-This project is licensed under the **ISC License**.
+<div align="center">
+  <p>Built with ❤️ for Database Management Systems learning & practical application.</p>
+</div>
