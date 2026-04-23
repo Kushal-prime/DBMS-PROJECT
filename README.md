@@ -31,17 +31,17 @@ The project follows a standard **Client-Server Architecture**, maintaining a str
 
 ```mermaid
 graph TD
-    subgraph Frontend "Client-Side (React + Vite)"
+    subgraph Frontend
         UI[User Interface]
         State[React State / Context]
     end
 
-    subgraph Backend "Server-Side (Node.js + Express)"
+    subgraph Backend
         Router[Express Router]
         Controllers[API Controllers]
     end
 
-    subgraph Database "Data Layer (SQLite)"
+    subgraph Database
         SQL[(SQLite db file)]
     end
 
