@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -33,10 +34,12 @@ const ProductDetails = () => {
         body: JSON.stringify({ product_id: product.id, quantity: 1 })
       });
       if (response.ok) {
+        toast.success(`${product.name} added to cart!`);
         navigate('/cart');
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
+      toast.error('Failed to add to cart.');
     } finally {
       setAdding(false);
     }

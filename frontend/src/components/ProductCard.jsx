@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const ProductCard = ({ product }) => {
   return (
@@ -40,7 +41,7 @@ const ProductCard = ({ product }) => {
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ product_id: product.id, quantity: 1 })
                 });
-                alert('Added to cart!');
+                toast.success(`${product.name} added to cart!`);
               } catch (e) {
                 console.error(e);
               }

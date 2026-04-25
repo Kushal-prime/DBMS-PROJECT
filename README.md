@@ -1,172 +1,125 @@
-<div align="center">
+# NexusCart - E-Commerce DBMS Project
 
-# 🛒 E-Commerce DBMS Platform
+NexusCart is a premium, full-stack e-commerce web application built to demonstrate advanced Database Management System (DBMS) concepts using the MERN stack. It features a beautifully designed, responsive UI with glassmorphism aesthetics, real-time cart notifications, and a dedicated admin dashboard for comprehensive order and inventory management.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge)
-![React](https://img.shields.io/badge/frontend-React%2019-61DAFB.svg?style=for-the-badge&logo=react)
-![Node.js](https://img.shields.io/badge/backend-Node.js%20%2B%20Express-339933.svg?style=for-the-badge&logo=node.js)
-![SQLite](https://img.shields.io/badge/database-SQLite-003B57.svg?style=for-the-badge&logo=sqlite)
+## 🌟 Key Features
 
-A full-stack, responsive E-commerce web application built for seamless online shopping and robust database management. Designed specifically as a **Database Management System (DBMS)** project, this platform demonstrates the practical integration of a relational database with a modern user interface.
-
-[Features](#-features) • [Architecture](#-system-architecture) • [Database](#-database-schema-erd) • [API Reference](#-api-endpoints) • [Getting Started](#-getting-started)
-
-</div>
-
----
-
-## ✨ Features
-
-- **🛍️ Complete Shopping Experience**: Browse products, filter by category, view details, and seamlessly add items to your cart.
-- **🔐 Admin Dashboard**: Monitor real-time orders, manage the product catalog (CRUD operations), and view database statistics.
-- **💳 Real-time Order Processing**: Simulated checkout utilizing SQL transactions (`BEGIN`, `COMMIT`, `ROLLBACK`) that instantly update relational records.
-- **⚡ Fast & Modern UI**: Built with React and Vite for blazing-fast performance, paired with a custom CSS design system.
-- **📦 Pre-seeded Database**: Comes packed with realistic mock data (Laptops, Phones, Accessories) using the Indian Rupee (₹) currency.
+- **Premium UI/UX:** Built with React, featuring dark-mode aesthetics, custom gradients, and smooth `react-hot-toast` notifications.
+- **Dynamic Catalog:** Browse tech products, filter by category, and view detailed product specifications.
+- **Cart & Checkout Flow:** Seamlessly add items to the cart and process simulated checkouts.
+- **Admin Dashboard:** A dedicated interface to manage inventory (CRUD operations on products) and view detailed customer orders.
+- **MERN Architecture:** Fully powered by MongoDB, Express, React, and Node.js.
 
 ---
 
 ## 🏗️ System Architecture
 
-The project follows a standard **Client-Server Architecture**, maintaining a strict separation of concerns between the presentation layer, business logic, and data persistence.
+The application follows a standard client-server architecture, utilizing a RESTful API to communicate between the React frontend and the Express backend.
 
 ```mermaid
 graph TD
-    subgraph Frontend
-        UI[User Interface]
-        State[React State / Context]
+    Client[React Frontend] -->|HTTP Requests| API[Express API Backend]
+    API -->|Mongoose ODM| DB[(MongoDB Database)]
+    
+    subgraph Frontend [NexusCart UI]
+        Home[Home / Catalog]
+        Cart[Shopping Cart]
+        Admin[Admin Dashboard]
     end
-
-    subgraph Backend
-        Router[Express Router]
-        Controllers[API Controllers]
+    
+    subgraph Backend [Node.js Server]
+        Routes[API Routes]
+        Controllers[Business Logic]
+        Models[Mongoose Models]
     end
-
-    subgraph Database
-        SQL[(SQLite db file)]
-    end
-
-    UI -->|User Action| State
-    State <-->|HTTP REST / JSON| Router
-    Router --> Controllers
-    Controllers <-->|SQL Queries| SQL
+    
+    Client -.-> Frontend
+    API -.-> Backend
 ```
 
 ---
 
-## 🗄️ Database Schema (ERD)
+## 🗄️ Database Schema (MongoDB)
 
-The backbone of this application is a normalized relational database built on SQLite. The schema manages products, user carts, and orders using strict foreign key constraints.
+The project utilizes MongoDB as its primary database. The schema is designed using Mongoose for object data modeling, ensuring strict typing and relationship enforcement.
 
 ```mermaid
 erDiagram
-    PRODUCTS ||--o{ CART : "added to"
-    PRODUCTS ||--o{ ORDER_ITEMS : "included in"
-    ORDERS ||--|{ ORDER_ITEMS : "contains"
+    PRODUCT ||--o{ CART_ITEM : "added to"
+    PRODUCT ||--o{ ORDER_ITEM : "purchased in"
+    ORDER ||--|{ ORDER_ITEM : "contains"
 
-    PRODUCTS {
-        INTEGER id PK "Auto-increment"
-        TEXT name "Not Null"
-        REAL price "Not Null (in ₹)"
-        TEXT category "Not Null"
-        TEXT image "URL to product image"
+    PRODUCT {
+        ObjectId _id PK
+        String name
+        Number price
+        String category
+        String image
     }
 
-    CART {
-        INTEGER id PK "Auto-increment"
-        INTEGER product_id FK "References Products"
-        INTEGER quantity "Not Null"
+    CART_ITEM {
+        ObjectId _id PK
+        ObjectId product_id FK "Ref: Product"
+        Number quantity
     }
 
-    ORDERS {
-        INTEGER id PK "Auto-increment"
-        TEXT customer_name "Not Null"
-        REAL total_price "Not Null"
-        DATETIME order_date "Default Current Timestamp"
+    ORDER {
+        ObjectId _id PK
+        String customer_name
+        Number total_price
+        Date order_date
+        Array items "Embedded OrderItems"
     }
 
-    ORDER_ITEMS {
-        INTEGER id PK "Auto-increment"
-        INTEGER order_id FK "References Orders"
-        INTEGER product_id FK "References Products"
-        INTEGER quantity "Not Null"
+    ORDER_ITEM {
+        ObjectId product_id FK "Ref: Product"
+        Number quantity
     }
 ```
 
----
-
-## 🔌 API Endpoints
-
-The Express backend exposes a comprehensive RESTful API for frontend integration.
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| **GET** | `/products` | Fetch all products (supports `?category=` filter) |
-| **GET** | `/products/:id` | Fetch a single product by ID |
-| **POST** | `/products` | Create a new product (Admin) |
-| **PUT** | `/products/:id` | Update an existing product (Admin) |
-| **DELETE** | `/products/:id` | Delete a product (Admin) |
-| **GET** | `/cart` | Fetch current user's cart items |
-| **POST** | `/cart` | Add an item to the cart or update quantity |
-| **DELETE** | `/cart/:id` | Remove an item from the cart |
-| **POST** | `/checkout` | Process cart into an order (Uses SQL Transactions) |
-| **GET** | `/orders` | Fetch all historical orders with nested items |
-| **GET** | `/debug/db` | Retrieve raw JSON dump of all DB tables for DBMS review |
+### Schema Details
+- **Products:** Stores the master inventory of all electronics.
+- **Cart:** Represents the active shopping session.
+- **Orders:** When a user checks out, cart items are embedded into an Order document alongside the total price and customer name, providing an immutable historical record of the purchase.
 
 ---
 
 ## 🚀 Getting Started
 
-Follow these steps to run the complete stack locally. Both frontend and backend servers launch simultaneously using a single command.
-
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v16 or higher)
-- npm (Node Package Manager)
+- Node.js (v16 or higher)
+- MongoDB (Running locally on `mongodb://localhost:27017` or via MongoDB Atlas)
 
 ### Installation
 
-1. **Clone the repository**:
+1. **Clone the repository**
    ```bash
    git clone https://github.com/Kushal-prime/DBMS-PROJECT.git
-   cd "DBMS-PROJECT"
+   cd DBMS-PROJECT
    ```
 
-2. **Install all dependencies** (This installs root, frontend, and backend packages):
+2. **Install dependencies**
+   Install packages for both the backend and frontend simultaneously:
    ```bash
    npm run install:all
    ```
 
-3. **Start the application**:
+3. **Start the application**
    ```bash
    npm start
    ```
-   *This command leverages `concurrently` to launch both the React frontend and the Express backend simultaneously.*
+   *This command runs both the Node.js backend (port 5000) and the React frontend (port 5173) concurrently.*
 
-### Accessing the App
-- **Frontend / Customer Shop**: `http://localhost:5173`
-- **Backend API Server**: `http://localhost:5000`
-
----
-
-## 📂 Project Structure
-
-```text
-📦 DBMS project
- ┣ 📂 backend                 # Node.js + Express + SQLite Backend
- ┃ ┣ 📜 database.js           # Database initialization and schema queries
- ┃ ┣ 📜 server.js             # Express API endpoints and routing
- ┃ ┗ 📜 shopping.db           # Live SQLite Database file
- ┣ 📂 frontend                # React + Vite Frontend
- ┃ ┣ 📂 src                   # React Source Code
- ┃ ┃ ┣ 📂 components          # Reusable UI components (ProductCard, etc.)
- ┃ ┃ ┣ 📂 pages               # Main application views (Cart, Details, Admin)
- ┃ ┃ ┗ 📜 App.jsx             # Main Router and Layout
- ┃ ┗ 📜 package.json          # Frontend dependencies
- ┣ 📜 package.json            # Root configuration for running concurrent scripts
- ┗ 📜 README.md               # You are here!
-```
+> **Note on Database Seeding:**
+> Upon first startup, the backend will detect if your MongoDB database is empty and will automatically populate it with default electronic products and realistic mock orders.
 
 ---
 
-<div align="center">
-  <p>Built with ❤️ for Database Management Systems learning & practical application.</p>
-</div>
+## 🛠️ Technology Stack
+
+- **Frontend:** React.js, Vite, React Router DOM, React Hot Toast, Vanilla CSS
+- **Backend:** Node.js, Express.js, Mongoose (ODM), Dotenv
+- **Database:** MongoDB
+
+---
+*Developed for DBMS Course Project Demonstration.*
