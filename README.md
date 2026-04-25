@@ -1,5 +1,7 @@
 # NexusCart - E-Commerce DBMS Project
 
+![NexusCart Application Demo](./demo.webp)
+
 NexusCart is a premium, full-stack e-commerce web application built to demonstrate advanced Database Management System (DBMS) concepts using the MERN stack. It features a beautifully designed, responsive UI with glassmorphism aesthetics, real-time cart notifications, and a dedicated admin dashboard for comprehensive order and inventory management.
 
 ## 🌟 Key Features
