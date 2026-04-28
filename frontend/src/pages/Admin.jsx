@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { fetchOrders, fetchProducts, createProduct, updateProduct, deleteProduct } from '../api';
 
 const Admin = () => {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('orders'); // 'orders' or 'products'
-
-  // Product Form State
+  const [activeTab, setActiveTab] = useState('orders');
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', price: '', category: 'Laptop', image: '' });
 
   const fetchData = async () => {
     try {
-      const [ordersRes, productsRes] = await Promise.all([
-        fetch('http://localhost:5000/orders'),
-        fetch('http://localhost:5000/products')
-      ]);
-      const ordersData = await ordersRes.json();
-      const productsData = await productsRes.json();
-      
+      const [ordersData, productsData] = await Promise.all([fetchOrders(), fetchProducts()]);
       setOrders(ordersData);
       setProducts(productsData);
     } catch (error) {
@@ -28,51 +21,31 @@ const Admin = () => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleProductSubmit = async (e) => {
     e.preventDefault();
-    const url = editingId ? `http://localhost:5000/products/${editingId}` : 'http://localhost:5000/products';
-    const method = editingId ? 'PUT' : 'POST';
-
     try {
-      await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+      if (editingId) { await updateProduct(editingId, formData); }
+      else { await createProduct(formData); }
       setFormData({ name: '', price: '', category: 'Laptop', image: '' });
       setEditingId(null);
       fetchData();
-    } catch (error) {
-      console.error('Error saving product:', error);
-    }
+    } catch (error) { console.error('Error saving product:', error); }
   };
 
   const handleDeleteProduct = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/products/${id}`, { method: 'DELETE' });
-      if (!response.ok) {
-         const err = await response.json();
-         alert("Cannot delete this product! It has already been ordered by a customer (Database Foreign Key constraint).\n\nDetails: " + err.error);
-         return;
-      }
+      await deleteProduct(id);
       fetchData();
     } catch (error) {
-      console.error('Error deleting product:', error);
+      alert("Cannot delete this product!\n\nDetails: " + error.message);
     }
   };
 
   const handleEditClick = (product) => {
     setEditingId(product.id);
-    setFormData({
-      name: product.name,
-      price: product.price,
-      category: product.category,
-      image: product.image
-    });
+    setFormData({ name: product.name, price: product.price, category: product.category, image: product.image });
   };
 
   if (loading) return <div className="text-center mt-8">Loading admin dashboard...</div>;
@@ -82,27 +55,15 @@ const Admin = () => {
       <div className="flex justify-between items-center mb-8">
         <h1>Admin Dashboard</h1>
         <div className="flex gap-4">
-          <button 
-            className={`btn ${activeTab === 'orders' ? '' : 'btn-outline'}`}
-            onClick={() => setActiveTab('orders')}
-          >
-            Orders
-          </button>
-          <button 
-            className={`btn ${activeTab === 'products' ? '' : 'btn-outline'}`}
-            onClick={() => setActiveTab('products')}
-          >
-            Products
-          </button>
+          <button className={`btn ${activeTab === 'orders' ? '' : 'btn-outline'}`} onClick={() => setActiveTab('orders')}>Orders</button>
+          <button className={`btn ${activeTab === 'products' ? '' : 'btn-outline'}`} onClick={() => setActiveTab('products')}>Products</button>
         </div>
       </div>
 
       {activeTab === 'orders' && (
         <>
           {orders.length === 0 ? (
-            <div className="card text-center" style={{ padding: '4rem 2rem' }}>
-              <h2 style={{ color: 'var(--text-muted)' }}>No orders have been placed yet.</h2>
-            </div>
+            <div className="card text-center" style={{ padding: '4rem 2rem' }}><h2 style={{ color: 'var(--text-muted)' }}>No orders have been placed yet.</h2></div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {orders.map(order => (
@@ -110,25 +71,18 @@ const Admin = () => {
                   <div className="flex justify-between items-center mb-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
                     <div>
                       <h3 style={{ color: 'var(--accent)', marginBottom: '0.25rem' }}>Order #{order.id}</h3>
-                      <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                        {new Date(order.order_date).toLocaleString()}
-                      </p>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{new Date(order.order_date).toLocaleString()}</p>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                        ₹{order.total_price.toFixed(2)}
-                      </p>
-                      <p style={{ color: 'var(--text-main)' }}>
-                        Customer: <span style={{ fontWeight: 'bold' }}>{order.customer_name}</span>
-                      </p>
+                      <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--primary)' }}>₹{order.total_price.toFixed(2)}</p>
+                      <p style={{ color: 'var(--text-main)' }}>Customer: <span style={{ fontWeight: 'bold' }}>{order.customer_name}</span></p>
                     </div>
                   </div>
-                  
                   <div>
                     <h4 className="mb-2" style={{ color: 'var(--text-muted)' }}>Items:</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {order.items && order.items.map((item, index) => (
-                        <div key={index} style={{ background: 'rgba(15, 23, 42, 0.5)', padding: '0.75rem', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                        <div key={index} style={{ background: 'rgba(15,23,42,0.5)', padding: '0.75rem', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
                           <span>{item.quantity}x {item.name}</span>
                           <span style={{ color: 'var(--accent)' }}>₹{(item.price * item.quantity).toFixed(2)}</span>
                         </div>
@@ -172,14 +126,11 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-4">
                   <button type="submit" className="btn" style={{ flex: 1 }}>{editingId ? 'Update' : 'Add'}</button>
-                  {editingId && (
-                    <button type="button" className="btn btn-outline" onClick={() => { setEditingId(null); setFormData({ name: '', price: '', category: 'Laptop', image: '' }); }}>Cancel</button>
-                  )}
+                  {editingId && (<button type="button" className="btn btn-outline" onClick={() => { setEditingId(null); setFormData({ name: '', price: '', category: 'Laptop', image: '' }); }}>Cancel</button>)}
                 </div>
               </form>
             </div>
           </div>
-          
           <div className="md:grid-cols-2" style={{ gridColumn: 'span 2' }}>
             <div className="grid grid-cols-1 gap-4">
               {products.map(product => (
@@ -199,7 +150,6 @@ const Admin = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

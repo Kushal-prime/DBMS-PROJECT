@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { fetchCart, removeFromCart, checkout } from '../api';
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -8,10 +9,9 @@ const Cart = () => {
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState('');
 
-  const fetchCart = async () => {
+  const loadCart = async () => {
     try {
-      const response = await fetch('http://localhost:5000/cart');
-      const data = await response.json();
+      const data = await fetchCart();
       setCartItems(data);
     } catch (error) {
       console.error('Error fetching cart:', error);
@@ -21,13 +21,13 @@ const Cart = () => {
   };
 
   useEffect(() => {
-    fetchCart();
+    loadCart();
   }, []);
 
   const removeItem = async (id) => {
     try {
-      await fetch(`http://localhost:5000/cart/${id}`, { method: 'DELETE' });
-      fetchCart();
+      await removeFromCart(id);
+      loadCart();
     } catch (error) {
       console.error('Error removing item:', error);
     }
@@ -39,19 +39,14 @@ const Cart = () => {
 
     setCheckingOut(true);
     try {
-      const response = await fetch('http://localhost:5000/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer_name: customerName })
-      });
+      const result = await checkout(customerName);
       
-      if (response.ok) {
+      if (result.ok) {
         setCheckoutMessage('Order placed successfully!');
         setCartItems([]);
         setCustomerName('');
       } else {
-        const err = await response.json();
-        setCheckoutMessage(err.error || 'Checkout failed');
+        setCheckoutMessage(result.data.error || 'Checkout failed');
       }
     } catch (error) {
       setCheckoutMessage('Checkout failed. Please try again.');

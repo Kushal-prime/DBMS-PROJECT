@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { addToCart } from '../api';
 
 const ProductCard = ({ product }) => {
   return (
@@ -36,11 +37,7 @@ const ProductCard = ({ product }) => {
             style={{ flex: 1, padding: '0.75rem 0.5rem' }}
             onClick={async () => {
               try {
-                await fetch('http://localhost:5000/cart', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ product_id: product.id, quantity: 1 })
-                });
+                await addToCart(product.id, 1);
                 toast.success(`${product.name} added to cart!`);
               } catch (e) {
                 console.error(e);

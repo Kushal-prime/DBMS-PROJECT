@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { fetchProductById, addToCart } from '../api';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -10,11 +11,9 @@ const ProductDetails = () => {
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const loadProduct = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/products/${id}`);
-        if (!response.ok) throw new Error('Product not found');
-        const data = await response.json();
+        const data = await fetchProductById(id);
         setProduct(data);
       } catch (error) {
         console.error(error);
@@ -22,21 +21,15 @@ const ProductDetails = () => {
         setLoading(false);
       }
     };
-    fetchProduct();
+    loadProduct();
   }, [id]);
 
-  const addToCart = async () => {
+  const handleAddToCart = async () => {
     setAdding(true);
     try {
-      const response = await fetch('http://localhost:5000/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_id: product.id, quantity: 1 })
-      });
-      if (response.ok) {
-        toast.success(`${product.name} added to cart!`);
-        navigate('/cart');
-      }
+      await addToCart(product.id, 1);
+      toast.success(`${product.name} added to cart!`);
+      navigate('/cart');
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast.error('Failed to add to cart.');
@@ -84,7 +77,7 @@ const ProductDetails = () => {
           <button 
             className="btn" 
             style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}
-            onClick={addToCart}
+            onClick={handleAddToCart}
             disabled={adding}
           >
             {adding ? 'Adding to Cart...' : 'Add to Cart'}

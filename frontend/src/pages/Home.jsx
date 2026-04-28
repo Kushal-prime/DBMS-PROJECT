@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
+import { fetchProducts } from '../api';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('');
 
-  const fetchProducts = async () => {
+  const loadProducts = async () => {
     setLoading(true);
     try {
-      const url = category 
-        ? `http://localhost:5000/products?category=${encodeURIComponent(category)}`
-        : 'http://localhost:5000/products';
-      const response = await fetch(url);
-      const data = await response.json();
+      const data = await fetchProducts(category);
       setProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -23,7 +20,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchProducts();
+    loadProducts();
   }, [category]);
 
   const categories = ['Laptop', 'Phone', 'Headphones', 'Smartwatch', 'Keyboard'];
